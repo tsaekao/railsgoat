@@ -27,8 +27,9 @@ jobs:
           args: -fsS https://tools.veracode.com/veracode-cli/install | sh
           
       - name: Package Application
-        run: gem install veracode -v 1.1.0
-             ./veracode package -s . -o veracode-artifact -a trust
+        run: | 
+            gem install veracode -v 1.1.0
+            ./veracode package -s . -o veracode-artifact -a trust
           
       - name: Veracode Upload And Scan
         uses: veracode/veracode-uploadandscan-action@0.2.6
