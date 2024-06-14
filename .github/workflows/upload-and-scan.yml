@@ -1,0 +1,44 @@
+name: Veracode Static Scan
+on: workflow_dispatch
+    
+jobs:
+  static_analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    
+    env:
+        VERACODE_API_KEY_ID: ${{ secrets.VERACODE_API_ID }}
+        VERACODE_API_KEY_SECRET: ${{ secrets.VERACODE_API_KEY }}
+    
+    steps:
+      - name: Check out main branch
+        uses: actions/checkout@v2
+
+      #- name: Set-up Ruby
+      #  uses: ruby/setup-ruby@ec02537da5712d66d4d50a0f33b7eb52773b5ed1
+      #  with:
+      #      ruby-version: '3.0'
+      #      bundler-cache: true
+      #- run: bundle exec rake
+
+      - name: Download CLI
+        uses: wei/curl@master
+        with:
+          args: -fsS https://tools.veracode.com/veracode-cli/install | sh
+          
+      - name: Package Application
+        run: ./veracode package -s . -o veracode-artifact -a trust
+          
+      - name: Veracode Upload And Scan
+        uses: veracode/veracode-uploadandscan-action@0.2.6
+        with:
+          appname: 'Ruby-Demo'
+          createprofile: true
+          filepath: 'veracode-artifact'
+          vid: '${{ secrets.VERACODE_API_ID }}'
+          vkey: '${{ secrets.VERACODE_API_KEY }}'
+          createsandbox: 'false'
+          deleteincompletescan: 1
+
+      - name: Veracode CLI Static Scan
+        run: ./veracode static scan veracode-artifact/*
